@@ -1,0 +1,16 @@
+# Controller
+ryu==4.34
+eventlet==0.30.2
+
+# Routing and analysis
+networkx==3.1
+pandas==2.0.3
+matplotlib==3.7.5
+
+# Dashboard and API
+Flask==2.2.5
+Werkzeug==2.2.3
+requests==2.31.0
+
+# Tests
+pytest==7.4.4

@@ -15,7 +15,8 @@ echo "== 3/4 Python virtual environment =="
 python3 -m venv --system-site-packages venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install "setuptools==65.5.1" wheel
+pip install "setuptools==65.5.1" "wheel==0.38.4" pbr
+SETUPTOOLS_USE_DISTUTILS=stdlib pip install --no-build-isolation ryu==4.34 eventlet==0.30.2
 pip install -r requirements.txt
 
 echo "== 4/4 Version check =="

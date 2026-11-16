@@ -18,12 +18,14 @@ pip install --upgrade pip
 pip install "setuptools==65.5.1" "wheel==0.38.4" pbr
 SETUPTOOLS_USE_DISTUTILS=stdlib pip install --no-build-isolation ryu==4.34 eventlet==0.30.2
 pip install -r requirements.txt
+pip install "git+https://github.com/mininet/mininet.git@2.3.0"
 
 echo "== 4/4 Version check =="
 python3 --version
 ryu-manager --version
 sudo ovs-vsctl --version | head -n 1
 mn --version
+sudo venv/bin/python -c "import mininet; print('mininet python module ok')"
 iperf3 --version | head -n 1
 
 echo

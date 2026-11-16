@@ -1,0 +1,62 @@
+{
+  "topology": {
+    "nodes": [
+      {"id": "h1", "type": "host"},
+      {"id": "h2", "type": "host"},
+      {"id": "s1", "type": "switch"},
+      {"id": "s2", "type": "switch"},
+      {"id": "s3", "type": "switch"},
+      {"id": "s4", "type": "switch"}
+    ],
+    "links": [
+      {"id": "h1-s1", "routed": false},
+      {"id": "s1-s2", "routed": true},
+      {"id": "s1-s3", "routed": true},
+      {"id": "s2-s4", "routed": true},
+      {"id": "s3-s4", "routed": true},
+      {"id": "s4-h2", "routed": false}
+    ]
+  },
+  "metrics": {
+    "timestamp": "2026-11-16T10:30:05Z",
+    "links": [
+      {"link": "s1-s2", "latency_ms": 145.0, "loss_pct": 4.2, "throughput_mbps": 9.1, "util": 0.92, "capacity_mbps": 10, "status": "congested"},
+      {"link": "s2-s4", "latency_ms": 11.8, "loss_pct": 0.1, "throughput_mbps": 9.0, "util": 0.9, "capacity_mbps": 10, "status": "congested"},
+      {"link": "s1-s3", "latency_ms": 24.6, "loss_pct": 0.2, "throughput_mbps": 3.1, "util": 0.31, "capacity_mbps": 10, "status": "up"},
+      {"link": "s3-s4", "latency_ms": 25.3, "loss_pct": 0.1, "throughput_mbps": 3.0, "util": 0.3, "capacity_mbps": 10, "status": "up"}
+    ]
+  },
+  "current_route": {
+    "timestamp": "2026-11-16T10:30:05Z",
+    "mode": "adaptive",
+    "path": ["h1", "s1", "s3", "s4", "h2"],
+    "path_name": "B",
+    "cost": 0.41
+  },
+  "events": [
+    {
+      "id": 1,
+      "timestamp": "2026-11-16T10:29:50Z",
+      "type": "route_change",
+      "from_path": null,
+      "to_path": "A",
+      "reason": "initial route, lowest cost"
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-11-16T10:30:02Z",
+      "type": "congestion",
+      "from_path": "A",
+      "to_path": "A",
+      "reason": "utilization 0.92 and loss 4.2 percent on s1-s2"
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-11-16T10:30:05Z",
+      "type": "route_change",
+      "from_path": "A",
+      "to_path": "B",
+      "reason": "path A cost 0.88 is above path B cost 0.41"
+    }
+  ]
+}

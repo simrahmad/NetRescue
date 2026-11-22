@@ -5,6 +5,7 @@ PYTHON = venv/bin/python
 RYU    = venv/bin/ryu-manager
 
 .PHONY: help topo controller adaptive dashboard experiment test clean
+.PHONY: help topo controller adaptive adaptive-dev dashboard experiment test clean
 
 help:
 > @echo "Terminal 1:  make controller   (baseline Ryu controller)"
@@ -20,7 +21,10 @@ controller:
 > $(RYU) --ofp-tcp-listen-port 6653 controller/baseline_controller.py
 
 adaptive:
-> $(RYU) --ofp-tcp-listen-port 6653 --observe-links controller/adaptive_controller.py
+> $(RYU) --ofp-tcp-listen-port 6653 controller/adaptive_controller.py
+
+adaptive-dev:
+> NETRESCUE_DEV_FEED=/tmp/netrescue_feed.json $(RYU) --ofp-tcp-listen-port 6653 controller/adaptive_controller.py
 
 dashboard:
 > $(PYTHON) dashboard/app.py

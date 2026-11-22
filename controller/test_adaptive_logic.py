@@ -68,3 +68,9 @@ def test_probe_rules_pin_both_paths():
         (1, H2_IP, 8, 2), (1, H2_IP, 16, 3),
         (4, H1_IP, 8, 1), (4, H1_IP, 16, 2),
     ]
+
+def test_controller_does_not_shadow_ryu_events():
+    """RyuApp uses self.events as its own queue; never reuse that name."""
+    from pathlib import Path
+    src = Path(__file__).resolve().parent.parent / "controller" / "adaptive_controller.py"
+    assert "self.events" not in src.read_text(encoding="utf-8")

@@ -52,7 +52,7 @@ class AdaptiveController(app_manager.RyuApp):
         self.plan = plan_for("A")
         self.latest_snapshot = None
         self.latest_route = None
-        self.events = []
+        self.event_log = []
         self._event_id = 0
         feed = os.environ.get("NETRESCUE_DEV_FEED")
         if feed:
@@ -146,7 +146,7 @@ class AdaptiveController(app_manager.RyuApp):
             "path_name": self.path_name,
             "route": self.latest_route,
             "metrics": self.latest_snapshot,
-            "events": list(self.events),
+            "events": list(self.event_log),
             "route_changes": self.router.route_changes,
         }
 
@@ -154,8 +154,8 @@ class AdaptiveController(app_manager.RyuApp):
         self._event_id += 1
         entry = dict(event)
         entry["id"] = self._event_id
-        self.events.append(entry)
-        del self.events[:-MAX_EVENTS]
+        self.event_log.append(entry)
+        del self.event_log[:-MAX_EVENTS]
 
     # ----------------------------------------------------------------- dev feed
     def _dev_feed_loop(self, path):

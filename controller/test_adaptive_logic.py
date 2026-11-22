@@ -60,3 +60,11 @@ def test_failure_switches_immediately():
     decision = router.decide(snapshot("fail"))
     assert decision["path_name"] == "B" and decision["changed"]
     assert any(e["type"] == "link_down" for e in decision["events"])
+
+
+def test_probe_rules_pin_both_paths():
+    from controller.flow_plan import probe_rules
+    assert sorted(probe_rules()) == [
+        (1, H2_IP, 8, 2), (1, H2_IP, 16, 3),
+        (4, H1_IP, 8, 1), (4, H1_IP, 16, 2),
+    ]

@@ -29,11 +29,12 @@ from ryu.controller.handler import (CONFIG_DISPATCHER, DEAD_DISPATCHER,
 from ryu.lib import hub
 from ryu.ofproto import ofproto_v1_3
 
-from controller.flow_plan import changed_rules, plan_for
+from controller.flow_plan import changed_rules, plan_for, probe_rules
 from routing.engine import AdaptiveRouter
 
 ETH_TYPE_IPV4 = 0x0800
 ROUTE_PRIORITY = 10
+PROBE_PRIORITY = 20
 FEED_INTERVAL_S = 1.0
 MAX_EVENTS = 200
 MODES = ("adaptive", "baseline")
@@ -61,14 +62,19 @@ class AdaptiveController(app_manager.RyuApp):
     # ------------------------------------------------------------------ switches
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def on_switch_features(self, ev):
-        """A switch connected: remember it and install the rules for the current path."""
+        """A switch connected: remember it and install route and probe rules."""
         dp = ev.msg.datapath
         self.datapaths[dp.id] = dp
         rules = self.plan.get(dp.id, {})
         for ip, port in rules.items():
             self._send_rule(dp, ip, port)
-        self.logger.info("s%s connected: installed %d rule(s), path %s",
-                         dp.id, len(rules), self.path_name)
+        probes = 0
+        for sw, ip, dscp, port in probe_rules():
+            if sw == dp.id:
+                self._send_probe_rule(dp, ip, dscp, port)
+                probes += 1
+        self.logger.info("s%s connected: %d route rule(s), %d probe rule(s), path %s",
+                         dp.id, len(rules), probes, self.path_name)
 
     @set_ev_cls(ofp_event.EventOFPStateChange, [MAIN_DISPATCHER, DEAD_DISPATCHER])
     def on_state_change(self, ev):
@@ -84,6 +90,16 @@ class AdaptiveController(app_manager.RyuApp):
         inst = [parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, actions)]
         dp.send_msg(parser.OFPFlowMod(datapath=dp, priority=ROUTE_PRIORITY,
                                       match=match, instructions=inst))
+
+    def _send_probe_rule(self, dp, ip, dscp, port):
+        """Pin ICMP with this DSCP value to one output port (higher priority)."""
+        ofp, parser = dp.ofproto, dp.ofproto_parser
+        match = parser.OFPMatch(eth_type=ETH_TYPE_IPV4, ip_proto=1,
+                                ipv4_dst=ip, ip_dscp=dscp)
+        actions = [parser.OFPActionOutput(port)]
+        inst = [parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, actions)]
+        dp.send_msg(parser.OFPFlowMod(datapath=dp, priority=PROBE_PRIORITY,
+                                      match=match, instructions=inst))    
 
     def _apply_path(self, path_name):
         """Rewrite only the rules that differ between the old and the new path."""

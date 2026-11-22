@@ -5,7 +5,7 @@ PYTHON = venv/bin/python
 RYU    = venv/bin/ryu-manager
 
 .PHONY: help topo controller adaptive dashboard experiment test clean
-.PHONY: help topo controller adaptive adaptive-dev dashboard experiment test clean
+.PHONY: help topo controller adaptive adaptive-dev monitor dashboard experiment test clean
 
 help:
 > @echo "Terminal 1:  make controller   (baseline Ryu controller)"
@@ -37,3 +37,6 @@ test:
 
 clean:
 > sudo mn -c
+
+monitor:
+> sudo $(PYTHON) -m monitoring.publisher

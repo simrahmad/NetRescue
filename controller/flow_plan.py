@@ -56,3 +56,20 @@ def changed_rules(old_plan, new_plan):
             if old_plan.get(sw, {}).get(ip) != port:
                 changes.append((sw, ip, port))
     return changes
+
+# Probe pinning: ICMP marked with a DSCP value always takes one fixed path, so the
+# monitoring probes can measure BOTH paths (not just the one carrying traffic).
+PROBE_DSCP = {"A": 8, "B": 16}
+
+
+def probe_rules():
+    """Static probe rules as (switch, destination_ip, dscp, output_port).
+
+    s1 pins probes toward h2 and s4 pins the replies toward h1. They never change.
+    """
+    rules = []
+    for name, dscp in PROBE_DSCP.items():
+        via = MIDDLE[name]
+        rules.append((1, H2_IP, dscp, SWITCH_PORTS[(1, via)]))
+        rules.append((4, H1_IP, dscp, SWITCH_PORTS[(4, via)]))
+    return rules

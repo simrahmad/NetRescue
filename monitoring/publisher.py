@@ -161,8 +161,9 @@ def run_forever():
             last = now
             write_snapshot(snapshot)
             print(snapshot["timestamp"], "  ".join(
-                "%s %s %sms %s%% u=%s" % (l["link"], l["status"], l["latency_ms"],
-                                          l["loss_pct"], l["util"])
+                "%s %s %s %s%% u=%s" % (l["link"], l["status"],
+                                        "-" if l["latency_ms"] is None else "%sms" % l["latency_ms"],
+                                        l["loss_pct"], l["util"])
                 for l in snapshot["links"]), flush=True)
             time.sleep(max(0.0, PUBLISH_INTERVAL_S - (time.monotonic() - now)))
 

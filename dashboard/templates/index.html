@@ -1,16 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>NetRescue Dashboard</title>
-  <!-- OWNER: M4. TODO: add Chart.js and vis.js (or plain SVG). -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NetRescue dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
-  <h1>NetRescue</h1>
-  <!-- TODO sections, filled by polling /api/<name> every second:
-       1. Topology with the active path highlighted
-       2. Charts: latency, loss, throughput per link
-       3. Event log (route changes and their reasons)
-       4. Baseline vs adaptive comparison (later, from experiments/results/*.csv) -->
+  <header class="top">
+    <div class="brand">
+      <h1>NetRescue</h1>
+      <p class="muted">Adaptive routing monitor{% if use_mock %} (mock data){% endif %}</p>
+    </div>
+    <div class="route-summary">
+      <span id="mode" class="pill">-</span>
+      <span>Active path <strong id="path-name">-</strong></span>
+      <span>Cost <strong id="path-cost">-</strong></span>
+      <span id="path-text" class="muted"></span>
+    </div>
+    <p id="updated" class="muted" role="status">Waiting for data...</p>
+  </header>
+
+  <main>
+    <section class="panel wide">
+      <h2>Topology</h2>
+      <svg id="topology" viewBox="0 0 640 300" role="img"
+           aria-label="Network topology with the active path highlighted"></svg>
+      <ul class="legend">
+        <li><span class="swatch up"></span>Up</li>
+        <li><span class="swatch congested"></span>Congested</li>
+        <li><span class="swatch down"></span>Down</li>
+        <li><span class="swatch active"></span>Active path</li>
+      </ul>
+    </section>
+
+    <section class="panel wide">
+      <h2>Link metrics</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Link</th><th>Status</th><th>Latency (ms)</th>
+              <th>Loss (%)</th><th>Utilization</th><th>Throughput (Mbps)</th>
+            </tr>
+          </thead>
+          <tbody id="link-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Latency per link (ms)</h2>
+      <div class="chart-box"><canvas id="latency-chart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Packet loss per link (%)</h2>
+      <div class="chart-box"><canvas id="loss-chart"></canvas></div>
+    </section>
+
+    <section class="panel wide">
+      <h2>Events</h2>
+      <ol id="event-list" class="events"></ol>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

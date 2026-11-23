@@ -20,11 +20,12 @@ topo:
 controller:
 > $(RYU) --ofp-tcp-listen-port 6653 controller/baseline_controller.py
 
+
 adaptive:
-> $(RYU) --ofp-tcp-listen-port 6653 controller/adaptive_controller.py
+> $(RYU) --ofp-tcp-listen-port 6653 --wsapi-host 127.0.0.1 --wsapi-port 8080 controller/adaptive_controller.py
 
 adaptive-dev:
-> NETRESCUE_DEV_FEED=/tmp/netrescue_feed.json $(RYU) --ofp-tcp-listen-port 6653 controller/adaptive_controller.py
+> NETRESCUE_DEV_FEED=/tmp/netrescue_feed.json $(RYU) --ofp-tcp-listen-port 6653 --wsapi-host 127.0.0.1 --wsapi-port 8080 controller/adaptive_controller.py
 
 dashboard:
 > $(PYTHON) dashboard/app.py

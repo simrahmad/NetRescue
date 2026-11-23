@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))      # so "routing" and "controller" can be imported
 
 from ryu.base import app_manager
+from ryu.app.wsgi import WSGIApplication
 from ryu.controller import ofp_event
 from ryu.controller.handler import (CONFIG_DISPATCHER, DEAD_DISPATCHER,
                                     MAIN_DISPATCHER, set_ev_cls)
@@ -31,6 +32,7 @@ from ryu.ofproto import ofproto_v1_3
 
 from controller.flow_plan import changed_rules, plan_for, probe_rules
 from routing.engine import AdaptiveRouter
+from controller.api import NetRescueApi
 
 ETH_TYPE_IPV4 = 0x0800
 ROUTE_PRIORITY = 10
@@ -42,6 +44,7 @@ MODES = ("adaptive", "baseline")
 
 class AdaptiveController(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
+    _CONTEXTS = {"wsgi": WSGIApplication}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,6 +61,11 @@ class AdaptiveController(app_manager.RyuApp):
         if feed:
             self.logger.info("Dev feed enabled: reading %s every %.1f s", feed, FEED_INTERVAL_S)
             hub.spawn(self._dev_feed_loop, feed)
+            wsgi = kwargs["wsgi"]
+            wsgi.register(NetRescueApi, {"app": self})
+
+
+
 
     # ------------------------------------------------------------------ switches
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)

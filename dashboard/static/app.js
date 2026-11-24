@@ -11,11 +11,22 @@ const NODE_POS = {
   s4: [490, 150], h2: [580, 150],
 };
 
-// Same colours as style.css
-const STATUS_COLOR = { up: "#1f8a5b", congested: "#c77a0a", down: "#c0392b" };
-
 const charts = {};
 let topologyBuilt = false;
+
+// Line charts keep the last MAX_POINTS readings (about 30 seconds of history).
+const MAX_POINTS = 30;
+// Path A links are blue, path B links are purple.
+const LINK_COLOR = {
+  "s1-s2": "#1b5fd6", "s2-s4": "#7aa5ee",
+  "s1-s3": "#8a4fbf", "s3-s4": "#c79be3",
+};
+const CHART_DEFS = [
+  { key: "latency", canvas: "latency-chart", field: "latency_ms", unit: "ms" },
+  { key: "loss", canvas: "loss-chart", field: "loss_pct", unit: "%" },
+  { key: "throughput", canvas: "throughput-chart", field: "throughput_mbps", unit: "Mbps" },
+];
+let lastSnapshotTime = null;
 
 async function getJSON(name) {
   const res = await fetch(`/api/${name}`);
@@ -146,36 +157,61 @@ function renderTable(metrics) {
   }
 }
 
-// ---------- charts ----------
-function drawBarChart(key, canvasId, label, values, labels, colors) {
-  if (!charts[key]) {
-    charts[key] = new Chart(document.getElementById(canvasId), {
-      type: "bar",
-      data: { labels, datasets: [{ label, data: values, backgroundColor: colors }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } },
+// ---------- live line charts ----------
+function createLineChart(def, linkIds) {
+  const chart = new Chart(document.getElementById(def.canvas), {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: linkIds.map((id) => ({
+        label: id,
+        data: [],
+        borderColor: LINK_COLOR[id] || "#9aa9ae",
+        backgroundColor: LINK_COLOR[id] || "#9aa9ae",
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.25,
+      })),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { usePointStyle: true } } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: def.unit } },
+        x: { ticks: { maxTicksLimit: 6 } },
       },
-    });
-  } else {
-    const chart = charts[key];
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = values;
-    chart.data.datasets[0].backgroundColor = colors;
-    chart.update("none");
-  }
+    },
+  });
+  charts[def.key] = chart;
+  return chart;
 }
 
 function renderCharts(metrics) {
-  const labels = metrics.links.map((l) => l.link);
-  const colors = metrics.links.map((l) => STATUS_COLOR[l.status] || "#9aa9ae");
-  drawBarChart("latency", "latency-chart", "Latency (ms)",
-               metrics.links.map((l) => l.latency_ms), labels, colors);
-  drawBarChart("loss", "loss-chart", "Loss (%)",
-               metrics.links.map((l) => l.loss_pct), labels, colors);
+  // The page polls every second, but the monitor may publish less often.
+  // Only add a point when the snapshot is new.
+  if (metrics.timestamp === lastSnapshotTime) return;
+  lastSnapshotTime = metrics.timestamp;
+
+  const label = new Date(metrics.timestamp).toLocaleTimeString();
+  const byLink = {};
+  for (const l of metrics.links) byLink[l.link] = l;
+
+  for (const def of CHART_DEFS) {
+    const chart = charts[def.key] || createLineChart(def, metrics.links.map((l) => l.link));
+    chart.data.labels.push(label);
+    for (const ds of chart.data.datasets) {
+      const l = byLink[ds.label];
+      ds.data.push(l ? l[def.field] : null);   // null leaves a gap if a link is missing
+    }
+    if (chart.data.labels.length > MAX_POINTS) {
+      chart.data.labels.shift();
+      chart.data.datasets.forEach((ds) => ds.data.shift());
+    }
+    chart.update("none");
+  }
 }
 
 // ---------- event log ----------

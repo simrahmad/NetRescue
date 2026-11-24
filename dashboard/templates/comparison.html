@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NetRescue comparison</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>NetRescue</h1>
+      <p class="muted">Baseline vs adaptive routing</p>
+    </div>
+    <nav class="nav" aria-label="Pages">
+      <a href="/">Live</a>
+      <a href="/comparison" aria-current="page">Comparison</a>
+    </nav>
+    <p id="status" class="muted" role="status">Loading results...</p>
+  </header>
+
+  <main>
+    <p id="sample-banner" class="banner" hidden>
+      Showing sample data, not real results. Real results appear here as soon as
+      CSV files exist in experiments/results/.
+    </p>
+
+    <div class="toolbar">
+      <button id="reload" type="button">Reload results</button>
+      <span class="muted">Bars show the mean over repeated runs. Hover a bar for the standard deviation.</span>
+    </div>
+
+    <section class="panel">
+      <h2>Recovery time (s), lower is better</h2>
+      <div class="chart-box"><canvas id="recovery-chart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Packets lost, lower is better</h2>
+      <div class="chart-box"><canvas id="lost-chart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Average latency (ms), lower is better</h2>
+      <div class="chart-box"><canvas id="latency-chart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Throughput (Mbps), higher is better</h2>
+      <div class="chart-box"><canvas id="throughput-chart"></canvas></div>
+    </section>
+
+    <section class="panel wide">
+      <h2>All results (mean ± standard deviation)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th><th>Mode</th><th>Runs</th>
+              <th>Recovery (s)</th><th>Packets lost</th><th>Latency (ms)</th>
+              <th>Throughput (Mbps)</th><th>Route changes</th>
+            </tr>
+          </thead>
+          <tbody id="result-rows"></tbody>
+        </table>
+      </div>
+      <p class="note">Adaptive routing is not always better. Check cases where it loses (for example extra route changes or higher latency) and explain why in the report.</p>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='comparison.js') }}"></script>
+</body>
+</html>

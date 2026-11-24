@@ -13,6 +13,10 @@
       <h1>NetRescue</h1>
       <p class="muted">Adaptive routing monitor{% if use_mock %} (mock data){% endif %}</p>
     </div>
+    <nav class="nav" aria-label="Pages">
+      <a href="/" aria-current="page">Live</a>
+      <a href="/comparison">Comparison</a>
+    </nav>
     <div class="route-summary">
       <span id="mode" class="pill">-</span>
       <span>Active path <strong id="path-name">-</strong></span>
@@ -51,13 +55,18 @@
     </section>
 
     <section class="panel">
-      <h2>Latency per link (ms)</h2>
+      <h2>Latency (ms)</h2>
       <div class="chart-box"><canvas id="latency-chart"></canvas></div>
     </section>
 
     <section class="panel">
-      <h2>Packet loss per link (%)</h2>
+      <h2>Packet loss (%)</h2>
       <div class="chart-box"><canvas id="loss-chart"></canvas></div>
+    </section>
+
+    <section class="panel wide">
+      <h2>Throughput (Mbps)</h2>
+      <div class="chart-box"><canvas id="throughput-chart"></canvas></div>
     </section>
 
     <section class="panel wide">

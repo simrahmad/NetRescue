@@ -196,3 +196,14 @@ button:hover { border-color: var(--ink); }
 .note { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
 td.mode-baseline { color: var(--muted); font-weight: 600; }
 td.mode-adaptive { color: var(--active); font-weight: 600; }
+
+/* ---------- connection banner, event filters, new events ---------- */
+.banner.offline { border-color: var(--down); background: #fbeae8; color: #7a1f15; }
+.filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem; }
+.filters button { padding: 0.25rem 0.85rem; font-size: 0.9rem; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.events li.new { animation: flash 4s ease-out; }
+@keyframes flash { from { background: #dce8fb; } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) {
+  .events li.new { animation: none; border-left: 4px solid var(--active); padding-left: 0.5rem; }
+}

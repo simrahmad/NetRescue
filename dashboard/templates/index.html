@@ -27,6 +27,8 @@
   </header>
 
   <main>
+    <p id="connection-banner" class="banner offline" role="alert" hidden></p>
+
     <section class="panel wide">
       <h2>Topology</h2>
       <svg id="topology" viewBox="0 0 640 300" role="img"
@@ -71,6 +73,14 @@
 
     <section class="panel wide">
       <h2>Events</h2>
+      <div class="filters" role="group" aria-label="Filter events by type">
+        <button type="button" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-filter="route_change" aria-pressed="false">Route changes</button>
+        <button type="button" data-filter="congestion" aria-pressed="false">Congestion</button>
+        <button type="button" data-filter="link_down" aria-pressed="false">Link down</button>
+        <button type="button" data-filter="link_up" aria-pressed="false">Link up</button>
+      </div>
+      <p id="event-count" class="note" aria-live="polite"></p>
       <ol id="event-list" class="events"></ol>
     </section>
   </main>

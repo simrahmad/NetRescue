@@ -14,6 +14,7 @@ import json
 import os
 import random
 import statistics
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -25,9 +26,12 @@ MOCK_FILE = ROOT / "data" / "mock_metrics.json"
 
 USE_MOCK = os.environ.get("USE_MOCK", "1") == "1"
 CONTROLLER_URL = os.environ.get("CONTROLLER_URL", "http://localhost:8080")
-# In mock mode, add small random changes to the metrics so the live charts move.
-# Turn off with MOCK_JITTER=0 to get exactly the numbers in mock_metrics.json.
+# In mock mode, add small random changes to the metrics so the live charts move,
+# and a new simulated event every 15 seconds so the event log has something to show.
+# Turn both off with MOCK_JITTER=0 to get exactly what is in mock_metrics.json.
 MOCK_JITTER = os.environ.get("MOCK_JITTER", "1") == "1"
+SERVER_START = time.time()
+SIM_EVENT_SECONDS = 15
 
 # Experiment results (written by Member 5). If no CSV files exist yet, the
 # comparison page falls back to the sample file next to this script.
@@ -55,11 +59,41 @@ def add_jitter(metrics):
     return metrics
 
 
+# One simulated event of each type, used in turn.
+SIM_EVENTS = (
+    ("congestion", "B", "B", "utilization 0.9 and loss 3.5 percent on s1-s3 (simulated)"),
+    ("link_down", "B", "A", "no probe replies on s3-s4 (simulated)"),
+    ("link_up", "A", "A", "probes recovered on s3-s4 (simulated)"),
+    ("route_change", "A", "B", "path A cost 0.88 is above path B cost 0.41 (simulated)"),
+)
+
+
+def add_simulated_events(events):
+    """Return the mock events plus one fake event per 15 seconds since the server started."""
+    events = copy.deepcopy(events)
+    count = int((time.time() - SERVER_START) // SIM_EVENT_SECONDS)
+    last_id = max((e["id"] for e in events), default=0)
+    for k in range(1, count + 1):
+        kind, from_path, to_path, reason = SIM_EVENTS[(k - 1) % len(SIM_EVENTS)]
+        when = datetime.fromtimestamp(SERVER_START + k * SIM_EVENT_SECONDS, timezone.utc)
+        events.append({
+            "id": last_id + k,
+            "timestamp": when.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "type": kind,
+            "from_path": from_path,
+            "to_path": to_path,
+            "reason": reason,
+        })
+    return events
+
+
 def load_mock(name):
     with open(MOCK_FILE, encoding="utf-8") as f:
         data = json.load(f)[name]
     if name == "metrics" and MOCK_JITTER:
         data = add_jitter(data)
+    if name == "events" and MOCK_JITTER:
+        data = add_simulated_events(data)
     return data
 
 
